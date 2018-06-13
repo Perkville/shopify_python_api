@@ -1,5 +1,5 @@
 from ..base import ShopifyResource
 
 
-class ProductSearchEngine(ShopifyResource):
+class ShippingZone(ShopifyResource):
     pass

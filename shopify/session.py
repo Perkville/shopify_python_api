@@ -43,9 +43,9 @@ class Session(object):
         self.token = token
         return
 
-    def create_permission_url(self, scope, redirect_uri=None):
-        query_params = dict(client_id=self.api_key, scope=",".join(scope))
-        if redirect_uri: query_params['redirect_uri'] = redirect_uri
+    def create_permission_url(self, scope, redirect_uri, state=None):
+        query_params = dict(client_id=self.api_key, scope=",".join(scope), redirect_uri=redirect_uri)
+        if state: query_params['state'] = state
         return "%s/oauth/authorize?%s" % (self.site, urllib.parse.urlencode(query_params))
 
     def request_token(self, params):
@@ -99,7 +99,7 @@ class Session(object):
         # Avoid replay attacks by making sure the request
         # isn't more than a day old.
         one_day = 24 * 60 * 60
-        if int(params['timestamp']) < time.time() - one_day:
+        if int(params.get('timestamp', 0)) < time.time() - one_day:
             return False
 
         return cls.validate_hmac(params)
@@ -136,7 +136,7 @@ class Session(object):
         """
         def encoded_pairs(params):
             for k, v in six.iteritems(params):
-                if k not in ['signature', 'hmac']:
+                if k != 'hmac':
                     # escape delimiters to avoid tampering
                     k = str(k).replace("%", "%25").replace("=", "%3D")
                     v = str(v).replace("%", "%25")
